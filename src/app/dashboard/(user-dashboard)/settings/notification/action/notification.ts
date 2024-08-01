@@ -1,86 +1,44 @@
-import axios from "axios";
 import { NotificationSettingsProperties } from "../types/notification-settings.types";
 
-// Base URL for your API
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+// Retrieve the base URL from environment variables
+const baseUrl = process.env.API_URL;
 
-// Axios instance with default settings
-const axiosInstance = axios.create({
-  baseURL: BASE_URL,
-  timeout: 10_000,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+if (!baseUrl) {
+  throw new Error("API_URL environment variable is not defined");
+}
 
-export const createNotification = async (): Promise<Notification> => {
-  const data = { message: `Welcome to HNGi8` };
-  try {
-    const response = await axiosInstance.post("/notifications", data);
-    return response.data;
-  } catch (error) {
-    console.error("Error creating notification:", error);
-    throw error;
-  }
-};
-
-export const retrieveUserNotificationSettings = async (): Promise<NotificationSettingsProperties> => {
-  try {
-    const response = await axiosInstance.get("/notification-settings");
-    return response.data;
-  } catch (error) {
-    console.error("Error retrieving notification settings:", error);
-    throw error;
-  }
-};
-
+// Function to update user notification settings
 export const updateUserNotificationSettings = async (
-  settings: NotificationSettingsProperties,
-): Promise<void> => {
-  try {
-    await axiosInstance.patch("/notification-settings", settings);
-  } catch (error) {
-    console.error("Error updating notification settings:", error);
-    throw error;
+  newSettings: Partial<NotificationSettingsProperties>,
+) => {
+  const response = await fetch(`${baseUrl}/user/notifications`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(newSettings),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(
+      `Failed to update notification settings: ${errorData.message}`,
+    );
   }
+
+  return response.json();
 };
 
-export const retrieveUserNotificationAll = async (): Promise<Notification[]> => {
-  try {
-    const response = await axiosInstance.get("/notifications");
-    return response.data;
-  } catch (error) {
-    console.error("Error retrieving all notifications:", error);
-    throw error;
-  }
-};
+// Function to retrieve user notification settings
+export const retrieveUserNotificationSettings = async () => {
+  const response = await fetch(`${baseUrl}/user/notifications`);
 
-export const retrieveUserUnreadNotification = async (
-  readStatus: boolean = false,
-): Promise<Notification[]> => {
-  try {
-    const response = await axiosInstance.get(`/notifications?_read=${readStatus}`);
-    return response.data;
-  } catch (error) {
-    console.error("Error retrieving unread notifications:", error);
-    throw error;
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(
+      `Failed to retrieve notification settings: ${errorData.message}`,
+    );
   }
-};
 
-export const markNotificationAsRead = async (id: string): Promise<void> => {
-  try {
-    await axiosInstance.patch(`/notifications/${id}`);
-  } catch (error) {
-    console.error("Error marking notification as read:", error);
-    throw error;
-  }
-};
-
-export const markAllNotificationAsRead = async (): Promise<void> => {
-  try {
-    await axiosInstance.patch("/notifications");
-  } catch (error) {
-    console.error("Error marking all notifications as read:", error);
-    throw error;
-  }
+  return response.json();
 };

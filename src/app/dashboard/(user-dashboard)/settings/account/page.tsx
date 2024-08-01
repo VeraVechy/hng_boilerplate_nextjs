@@ -1,3 +1,5 @@
+"use client";
+
 import PasswordSettings from "./_component.tsx/password";
 
 const page = () => {

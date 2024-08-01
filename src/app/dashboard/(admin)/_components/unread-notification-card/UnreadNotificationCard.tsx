@@ -1,10 +1,8 @@
-"use client";
-
 import { BellRing } from "lucide-react";
-import { FC } from "react";
+import { FC, useEffect } from "react";
 
 import { useNotificationStore } from "~/app/dashboard/(user-dashboard)/settings/notification/action/notification-store";
-import { notificationSettingsProperties } from "~/app/dashboard/(user-dashboard)/settings/notification/types/notification-settings.types";
+import { NotificationSettingsProperties } from "~/app/dashboard/(user-dashboard)/settings/notification/types/notification-settings.types";
 import CustomButton from "~/components/common/common-button/common-button";
 import {
   Card,
@@ -33,9 +31,13 @@ const UnreadNotificationCard: FC<CardProperties> = ({
   unreadCount = 0,
   ...properties
 }) => {
-  const { settings, updateSettings } = useNotificationStore();
+  const { settings, updateSettings, fetchSettings } = useNotificationStore();
 
-  const handleToggleSwitch = (name: keyof notificationSettingsProperties) => {
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
+
+  const handleToggleSwitch = (name: keyof NotificationSettingsProperties) => {
     updateSettings({ [name]: !settings[name] });
   };
 
@@ -64,11 +66,9 @@ const UnreadNotificationCard: FC<CardProperties> = ({
             </p>
           </div>
           <Switch
-            checked={settings.mobile_push_notifications}
-            onCheckedChange={() =>
-              handleToggleSwitch("mobile_push_notifications")
-            }
-            name="mobile_push_notifications"
+            checked={settings.push_notifications}
+            onCheckedChange={() => handleToggleSwitch("push_notifications")}
+            name="push_notifications"
           />
         </div>
         <div data-testid="previewBody">
